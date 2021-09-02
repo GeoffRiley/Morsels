@@ -1,5 +1,5 @@
 import argparse
-import regex as re
+import configparser
 import csv
 
 
@@ -16,29 +16,19 @@ def get_cmdline_args():
 def main():
     args = get_cmdline_args()
 
-    text = args.infile.read()
+    conf = configparser.ConfigParser()
+    conf.read(args.infile.name)
 
-    section, results, sections = '', [], []
+    results, sections = [], []
     header = ['header']
 
-    matcher = re.compile(
-        r'^(?:\[(?P<section>.*)\]|(?P<var>[^[= ]+) ?= ?(?P<param>[^[]+?))$',
-        re.MULTILINE)
-
-    entries = [m.groupdict() for m in matcher.finditer(text)]
-
-    for entry in entries:
-        if entry['section']:
-            section = entry['section']
-            if section not in sections:
-                sections.append(section)
-        else:
-            v, p = entry['var'], entry['param']
-
+    for s in conf.sections():
+        sections.append(s)
+        for v, p in conf.items(s):
             if v not in header:
                 header.append(v)
 
-            results.append(('header', section, v, p))
+            results.append(('header', s, v, p))
 
     if args.collapsed:
         reorder = dict({s: dict() for s in sections})
