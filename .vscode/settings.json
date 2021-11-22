@@ -10,7 +10,7 @@
     "python.testing.unittestArgs": [
         "-v",
         "-s",
-        "./sortedlist",
+        "./iconv",
         "-p",
         "test_*.py"
     ],
