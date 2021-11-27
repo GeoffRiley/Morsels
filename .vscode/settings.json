@@ -10,7 +10,7 @@
     "python.testing.unittestArgs": [
         "-v",
         "-s",
-        "./iconv",
+        "./easy_json",
         "-p",
         "test_*.py"
     ],
