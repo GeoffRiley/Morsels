@@ -10,7 +10,7 @@
     "python.testing.unittestArgs": [
         "-v",
         "-s",
-        "./easy_json",
+        "./find_duplicates",
         "-p",
         "test_*.py"
     ],
