@@ -10,7 +10,7 @@
     "python.testing.unittestArgs": [
         "-v",
         "-s",
-        "./find_duplicates",
+        "./minheap",
         "-p",
         "test_*.py"
     ],
