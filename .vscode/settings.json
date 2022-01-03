@@ -10,7 +10,7 @@
     "python.testing.unittestArgs": [
         "-v",
         "-s",
-        "./minheap",
+        "./validators",
         "-p",
         "test_*.py"
     ],
