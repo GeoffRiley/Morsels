@@ -10,7 +10,7 @@
     "python.testing.unittestArgs": [
         "-v",
         "-s",
-        "./validators",
+        "./next_date",
         "-p",
         "test_*.py"
     ],
