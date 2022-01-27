@@ -10,7 +10,7 @@
     "python.testing.unittestArgs": [
         "-v",
         "-s",
-        "./next_date",
+        "./bankaccount",
         "-p",
         "test_*.py"
     ],
