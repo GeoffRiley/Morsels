@@ -10,7 +10,7 @@
     "python.testing.unittestArgs": [
         "-v",
         "-s",
-        "./bankaccount",
+        "./phone_number",
         "-p",
         "test_*.py"
     ],
