@@ -10,9 +10,9 @@
     "python.testing.unittestArgs": [
         "-v",
         "-s",
-        "./pattern_rename",
+        "./smoosh",
         "-p",
-        "test*.py"
+        "test_*.py"
     ],
     "python.pipenvPath": "${env:HOME}/.local/bin/pipenv",
     "python.poetryPath": "${env:HOME}/.local/bin/poetry",
