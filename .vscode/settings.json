@@ -10,7 +10,7 @@
     "python.testing.unittestArgs": [
         "-v",
         "-s",
-        "./smoosh",
+        "./count_lines",
         "-p",
         "test_*.py"
     ],
