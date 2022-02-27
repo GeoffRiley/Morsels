@@ -10,7 +10,7 @@
     "python.testing.unittestArgs": [
         "-v",
         "-s",
-        "./count_lines",
+        "./instance_tracker",
         "-p",
         "test_*.py"
     ],
