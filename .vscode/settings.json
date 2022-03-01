@@ -10,7 +10,7 @@
     "python.testing.unittestArgs": [
         "-v",
         "-s",
-        "./instance_tracker",
+        "./running_mean",
         "-p",
         "test_*.py"
     ],
