@@ -10,7 +10,7 @@
     "python.testing.unittestArgs": [
         "-v",
         "-s",
-        "./running_mean",
+        "./bullet_points",
         "-p",
         "test_*.py"
     ],
