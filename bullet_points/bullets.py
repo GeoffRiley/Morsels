@@ -4,19 +4,18 @@ from textwrap import indent
 from typing import List, Optional, Tuple
 
 
-class BulletList(UserList):
+class BulletList(UserList['Bullet']):
     def __str__(self) -> str:
         return '\n'.join(str(r) for r in self.data)
 
     def filter(self, filter_by: str) -> 'BulletList':
-        # *** NOT WORKING
         filter_by = filter_by.casefold()
         result = BulletList()
-        for item in self.data:
+        for item in self:
             if filter_by in str(item).casefold():
-                result.append(item)
+                result.append(Bullet(item.text))
                 if inside := item.children.filter(filter_by):
-                    result[-1].children.append(inside)
+                    result[-1].children.extend(inside)
         return result
 
 
