@@ -10,7 +10,7 @@
     "python.testing.unittestArgs": [
         "-v",
         "-s",
-        "./bullet_points",
+        "./phonetic",
         "-p",
         "test_*.py"
     ],
