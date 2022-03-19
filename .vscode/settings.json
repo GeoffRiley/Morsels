@@ -10,9 +10,9 @@
     "python.testing.unittestArgs": [
         "-v",
         "-s",
-        "./phonetic",
+        "./ssh_log_parser",
         "-p",
-        "test_*.py"
+        "*test*.py"
     ],
     "python.pipenvPath": "${env:HOME}/.local/bin/pipenv",
     "python.poetryPath": "${env:HOME}/.local/bin/poetry",
