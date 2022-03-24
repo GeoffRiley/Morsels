@@ -10,7 +10,7 @@
     "python.testing.unittestArgs": [
         "-v",
         "-s",
-        "./partial",
+        "./test_version",
         "-p",
         "test_*.py"
     ],
