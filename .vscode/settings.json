@@ -10,7 +10,7 @@
     "python.testing.unittestArgs": [
         "-v",
         "-s",
-        "./dmath",
+        "./field_tracker",
         "-p",
         "test_*.py"
     ],
