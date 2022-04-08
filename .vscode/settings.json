@@ -10,9 +10,9 @@
     "python.testing.unittestArgs": [
         "-v",
         "-s",
-        "./debug_calls",
+        "./lazy_looping_workshop",
         "-p",
-        "test_*.py"
+        "*_test.py"
     ],
     "python.pipenvPath": "${env:HOME}/.local/bin/pipenv",
     "python.poetryPath": "${env:HOME}/.local/bin/poetry",
