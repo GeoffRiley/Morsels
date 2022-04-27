@@ -10,7 +10,7 @@
     "python.testing.unittestArgs": [
         "-v",
         "-s",
-        "./passphrase",
+        "./querylist",
         "-p",
         "test_*.py"
     ],
