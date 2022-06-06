@@ -1,77 +1,106 @@
 import operator
 from collections import UserList
-from operator import attrgetter
-from typing import Any, Tuple
+from dataclasses import dataclass
+from typing import Any
 
-
-def field_in(x, y):
-    return x in y
-
-
-FILTER_FUNCTIONS = {
-    '': operator.eq,
-    'eq': operator.eq,
-    'gt': operator.gt,
-    'lt': operator.lt,
-    'ne': operator.ne,
-    'in': field_in,
-    'contains': operator.contains
+OPERATIONS = {
+    "eq": operator.eq,
+    "ne": operator.ne,
+    "lt": operator.lt,
+    "gt": operator.gt,
+    "le": operator.le,
+    "ge": operator.ge,
+    "contains": operator.contains,
+    "in": lambda x, y: operator.contains(y, x),
 }
 
 
-def _check_record_match(match_record, filters):
-    return all(
-        func(getattr(match_record, field_name), target_value)
-        for field_name, target_value, func in filters)
-
-
 class QueryList(UserList):
-    def filter(self, *args, **kwargs):
-        filters = []
-        # Since there can be multiple instances of, say, 'color != ...' these cannnot
-        # go into a dictionary… the alternative is to have everything in a list of tuples
-        queries = [*args, *kwargs.items()]
-        for key, value in queries:
-            attr_name, _, func = key.partition('__')
-            filters.append((attr_name, value, FILTER_FUNCTIONS[func]))
+    def filter(self, *callable_queries, **kwarg_queries):
+        queries = [
+            *callable_queries,
+            *filters_from_kwargs(kwarg_queries),
+        ]
+        return QueryList(obj for obj in self.data if all(
+            f(obj) for f in queries))
 
-        return QueryList(entry for entry in self.data
-                         if _check_record_match(entry, filters))
-
-    def attrs(self, *args):
-        doit = attrgetter(*args)
-        return [doit(rec) for rec in iter(self)]
+    def attrs(self, *names):
+        getter = operator.attrgetter(*names)
+        return [getter(obj) for obj in self.data]
 
 
-class Lookup:
-    def __init__(self, name: str) -> None:
-        self.name = name
-
-    def make_query(self, op, __o: object) -> Tuple[str, Any]:
-        return (f"{self.name}__{op}", __o)
-
-    def __eq__(self, __o: object) -> Tuple[str, Any]:
-        return self.make_query('eq', __o)
-
-    def __ne__(self, __o: object) -> Tuple[str, Any]:
-        return self.make_query('ne', __o)
-
-    def __lt__(self, __o: object) -> Tuple[str, Any]:
-        return self.make_query('lt', __o)
-
-    def __gt__(self, __o: object) -> Tuple[str, Any]:
-        return self.make_query('gt', __o)
-
-    def __le__(self, __o: object) -> Tuple[str, Any]:
-        return self.make_query('le', __o)
-
-    def __ge__(self, __o: object) -> Tuple[str, Any]:
-        return self.make_query('ge', __o)
+def filters_from_kwargs(queries):
+    for query, value in queries.items():
+        name, __, suffix = query.partition("__")
+        if __ != "__":
+            suffix = "eq"
+        yield Filter(name, suffix, value)
 
 
 class Field:
-    def __getattr__(self, name: str):
+    def __getattr__(self, name):
         return Lookup(name)
 
 
 F = Field()
+
+
+@dataclass
+class Lookup:
+    name: str
+
+    def make_matcher(self, op, value):
+        return Filter(self.name, op, value)
+
+    def __eq__(self, value):
+        return self.make_matcher("eq", value)
+
+    def __ne__(self, value):
+        return self.make_matcher("ne", value)
+
+    def __lt__(self, value):
+        return self.make_matcher("lt", value)
+
+    def __gt__(self, value):
+        return self.make_matcher("gt", value)
+
+    def __le__(self, value):
+        return self.make_matcher("le", value)
+
+    def __ge__(self, value):
+        return self.make_matcher("ge", value)
+
+
+@dataclass
+class Filter:
+    name: str
+    op: str
+    value: Any
+
+    def __call__(self, obj):
+        return OPERATIONS[self.op](getattr(obj, self.name), self.value)
+
+    def __or__(self, other):
+        return Joiner(any, self, other)
+
+    def __and__(self, other):
+        return Joiner(all, self, other)
+
+
+class Joiner:
+    def __init__(self, joiner, *filters):
+        self.joiner = joiner
+        self.filters = filters
+
+    def __call__(self, obj):
+        return self.joiner(f(obj) for f in self.filters)
+
+    def __or__(self, other):
+        if self.joiner == any:
+            return Joiner(any, *self.filters, other)
+        return Joiner(any, self, other)
+
+    def __and__(self, other):
+        if self.joiner == all:
+            return Joiner(all, *self.filters, other)
+        return Joiner(all, self, other)
