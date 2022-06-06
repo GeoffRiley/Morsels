@@ -1,14 +1,16 @@
 import operator
 from collections import UserList
 from operator import attrgetter
+from typing import Any, Tuple
 
 
-def field_in(a, b):
-    return a in b
+def field_in(x, y):
+    return x in y
 
 
 FILTER_FUNCTIONS = {
     '': operator.eq,
+    'eq': operator.eq,
     'gt': operator.gt,
     'lt': operator.lt,
     'ne': operator.ne,
@@ -17,50 +19,59 @@ FILTER_FUNCTIONS = {
 }
 
 
+def _check_record_match(match_record, filters):
+    return all(
+        func(getattr(match_record, field_name), target_value)
+        for field_name, target_value, func in filters)
+
+
 class QueryList(UserList):
-    def __init__(self, a_list: list) -> None:
-        super().__init__(a_list)
-        self.current_filter = None
-        self.filters = ()
-        self._pos = 0
-
-    def filter(self, **kwargs):
-        names = {}
-        self.filters = []
-        for key, value in kwargs.items():
+    def filter(self, *args, **kwargs):
+        filters = []
+        # Since there can be multiple instances of, say, 'color != ...' these cannnot
+        # go into a dictionary… the alternative is to have everything in a list of tuples
+        queries = [*args, *kwargs.items()]
+        for key, value in queries:
             attr_name, _, func = key.partition('__')
-            names[attr_name] = value
-            self.filters.append((value, FILTER_FUNCTIONS[func]))
-        self.current_filter = attrgetter(*names.keys()) if len(names) else None
-        self.filters = tuple(
-            self.filters) if len(self.filters) != 1 else self.filters[0]
-        return iter(self)
+            filters.append((attr_name, value, FILTER_FUNCTIONS[func]))
 
-    def __iter__(self):
-        self._pos = 0
-        return self
-
-    def __next__(self):
-        while True:
-            if self._pos >= len(self.data):
-                raise StopIteration
-            rec = self.data[self._pos]
-            self._pos += 1
-            if self.current_filter:
-                rec2 = self.current_filter(rec)
-                if not self._check_record_match(rec2):
-                    continue
-            return rec
-
-    def _check_record_match(self, match_record):
-        return all(
-            func(param1, param2)
-            for param1, param2, func in zip(match_record, *zip(
-                *self.filters))) if isinstance(
-                    match_record, tuple) else self.filters[1](match_record,
-                                                              self.filters[0])
+        return QueryList(entry for entry in self.data
+                         if _check_record_match(entry, filters))
 
     def attrs(self, *args):
         doit = attrgetter(*args)
-        result = [doit(rec) for rec in iter(self)]
-        return result if len(result) != 1 else result[0]
+        return [doit(rec) for rec in iter(self)]
+
+
+class Lookup:
+    def __init__(self, name: str) -> None:
+        self.name = name
+
+    def make_query(self, op, __o: object) -> Tuple[str, Any]:
+        return (f"{self.name}__{op}", __o)
+
+    def __eq__(self, __o: object) -> Tuple[str, Any]:
+        return self.make_query('eq', __o)
+
+    def __ne__(self, __o: object) -> Tuple[str, Any]:
+        return self.make_query('ne', __o)
+
+    def __lt__(self, __o: object) -> Tuple[str, Any]:
+        return self.make_query('lt', __o)
+
+    def __gt__(self, __o: object) -> Tuple[str, Any]:
+        return self.make_query('gt', __o)
+
+    def __le__(self, __o: object) -> Tuple[str, Any]:
+        return self.make_query('le', __o)
+
+    def __ge__(self, __o: object) -> Tuple[str, Any]:
+        return self.make_query('ge', __o)
+
+
+class Field:
+    def __getattr__(self, name: str):
+        return Lookup(name)
+
+
+F = Field()
